@@ -10,10 +10,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class ProductDaoImpl implements ProductDao {
@@ -63,7 +60,39 @@ public class ProductDaoImpl implements ProductDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder);
 
-        return keyHolder.getKey().intValue();
+        return Objects.requireNonNull(keyHolder.getKey()).intValue();
+
+    }
+
+    @Override
+    public void updateProduct(Integer productId, ProductRequest productRequest) {
+
+        String sql =
+                """
+                UPDATE product
+                SET product_name = :productName,
+                    category = :category,
+                    image_url = :imageUrl,
+                    price = :price,
+                    stock = :stock,
+                    description = :description,
+                    last_modified_date = :lastModifiedDate
+                WHERE product_id = :productId
+                """;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("productId", productId);
+        params.put("productName", productRequest.getProductName());
+        params.put("category", productRequest.getCategory().toString());
+        params.put("imageUrl", productRequest.getImageUrl());
+        params.put("price", productRequest.getPrice());
+        params.put("stock", productRequest.getStock());
+        params.put("description", productRequest.getDescription());
+        Date now = new Date();
+        params.put("lastModifiedDate", now);
+
+        namedParameterJdbcTemplate.update(sql, params);
+
 
     }
 }
